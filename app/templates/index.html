@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoom Transcript Insights</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .header {
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .form-section {
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Zoom Transcript Insights</h1>
+            <p class="lead">Extract insights from Zoom recording transcripts for online educational courses.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2>Upload Transcript</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="form-section">
+                                <h4>Session Information</h4>
+                                <div class="mb-3">
+                                    <label for="courseName" class="form-label">Course Name</label>
+                                    <input type="text" class="form-control" id="courseName" name="course_name" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="sessionNumber" class="form-label">Session Number</label>
+                                            <input type="number" class="form-control" id="sessionNumber" name="session_number" required min="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="mb-3">
+                                            <label for="sessionName" class="form-label">Session Name</label>
+                                            <input type="text" class="form-control" id="sessionName" name="session_name" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sessionDate" class="form-label">Session Date</label>
+                                    <input type="date" class="form-control" id="sessionDate" name="session_date" required>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>Files</h4>
+                                <div class="mb-3">
+                                    <label for="transcriptFile" class="form-label">Transcript File (VTT)</label>
+                                    <input type="file" class="form-control" id="transcriptFile" name="transcript_file" accept=".vtt" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="chatLogFile" class="form-label">Chat Log File (Optional)</label>
+                                    <input type="file" class="form-control" id="chatLogFile" name="chat_log_file" accept=".txt">
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>Analysis Options</h4>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="executive_summary" id="executiveSummary" name="analysis_types" checked>
+                                        <label class="form-check-label" for="executiveSummary">
+                                            Executive Summary
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="pedagogical_analysis" id="pedagogicalAnalysis" name="analysis_types" checked>
+                                        <label class="form-check-label" for="pedagogicalAnalysis">
+                                            Pedagogical Analysis
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="aha_moments" id="ahaMoments" name="analysis_types" checked>
+                                        <label class="form-check-label" for="ahaMoments">
+                                            AHA Moments
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="engagement_analysis" id="engagementAnalysis" name="analysis_types" checked>
+                                        <label class="form-check-label" for="engagementAnalysis">
+                                            Engagement Analysis
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>Participant-School Mapping (Optional)</h4>
+                                <div class="mb-3">
+                                    <p class="form-text">Add participant names and their affiliated schools.</p>
+                                    <div id="participantMappings">
+                                        <div class="row mb-2 participant-row">
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control participant-name" placeholder="Participant Name">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="text" class="form-control participant-school" placeholder="School Name">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-secondary mt-2" id="addParticipantBtn">Add Another Participant</button>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary" id="submitBtn">Generate Insights</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent Analyses</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentAnalyses">
+                            <p class="text-muted">No recent analyses found.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Modal -->
+    <div class="modal fade" id="processingModal" tabindex="-1" aria-labelledby="processingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="processingModalLabel">Processing</h5>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Generating insights from your transcript. This may take a few minutes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add participant button
+            document.getElementById('addParticipantBtn').addEventListener('click', function() {
+                const participantRow = document.createElement('div');
+                participantRow.className = 'row mb-2 participant-row';
+                participantRow.innerHTML = `
+                    <div class="col-md-6">
+                        <input type="text" class="form-control participant-name" placeholder="Participant Name">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control participant-school" placeholder="School Name">
+                    </div>
+                `;
+                document.getElementById('participantMappings').appendChild(participantRow);
+            });
+
+            // Form submission
+            document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Show processing modal
+                const processingModal = new bootstrap.Modal(document.getElementById('processingModal'));
+                processingModal.show();
+                
+                // Collect form data
+                const formData = new FormData();
+                
+                // Add session info
+                formData.append('course_name', document.getElementById('courseName').value);
+                formData.append('session_number', document.getElementById('sessionNumber').value);
+                formData.append('session_name', document.getElementById('sessionName').value);
+                formData.append('session_date', document.getElementById('sessionDate').value);
+                
+                // Add files
+                formData.append('transcript_file', document.getElementById('transcriptFile').files[0]);
+                if (document.getElementById('chatLogFile').files.length > 0) {
+                    formData.append('chat_log_file', document.getElementById('chatLogFile').files[0]);
+                }
+                
+                // Add analysis types
+                const analysisTypes = [];
+                document.querySelectorAll('input[name="analysis_types"]:checked').forEach(checkbox => {
+                    analysisTypes.push(checkbox.value);
+                });
+                formData.append('analysis_types', analysisTypes.join(','));
+                
+                // Add participant-school mapping
+                const mapping = {};
+                document.querySelectorAll('.participant-row').forEach(row => {
+                    const name = row.querySelector('.participant-name').value.trim();
+                    const school = row.querySelector('.participant-school').value.trim();
+                    if (name && school) {
+                        mapping[name] = school;
+                    }
+                });
+                formData.append('participant_school_mapping', JSON.stringify(mapping));
+                
+                try {
+                    // Send request to API
+                    const response = await fetch('/api/analyze', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to process transcript');
+                    }
+                    
+                    const result = await response.json();
+                    
+                    // Hide modal
+                    processingModal.hide();
+                    
+                    // Show success message
+                    alert('Analysis completed successfully!');
+                    
+                    // Refresh recent analyses
+                    // This would be implemented to fetch and display recent analyses
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    processingModal.hide();
+                    alert('Error processing transcript: ' + error.message);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

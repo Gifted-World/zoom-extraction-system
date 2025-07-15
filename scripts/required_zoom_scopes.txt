@@ -1,0 +1,38 @@
+Required Zoom API Scopes for Insights from Online Courses
+========================================================
+
+These scopes need to be added to your Server-to-Server OAuth app in the Zoom Marketplace:
+
+User Scopes:
+- user:read:admin
+- user:read
+
+Meeting Scopes:
+- meeting:read:admin
+- meeting:read
+
+Recording Scopes:
+- recording:read:admin
+- recording:read
+- cloud_recording:read:list_account_recordings:master
+- cloud_recording:read
+
+Report Scopes:
+- report:read:admin
+- report:read
+
+Account Scopes:
+- account:read:admin
+- account:read
+
+Instructions:
+1. Go to the Zoom App Marketplace Developer Dashboard (https://marketplace.zoom.us/develop)
+2. Select your Server-to-Server OAuth app
+3. Go to the "Scopes" section
+4. Add all the scopes listed above
+5. Save and activate your app again
+
+After updating the scopes, run the test script to verify:
+```
+python scripts/test_zoom_auth.py
+``` 
