@@ -30,7 +30,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(f"logs/daily_extraction_{datetime.now().strftime('%Y%m%d')}.log")
+        logging.FileHandler(f"/Users/rajeshpanchanathan/Documents/genwise/projects/Insights_from_Online_Courses/logs/daily_extraction_{datetime.now().strftime('%Y%m%d')}.log")
     ]
 )
 logger = logging.getLogger(__name__)
@@ -238,31 +238,34 @@ class SimpleZoomExtractor:
             
             # Extract recording files
             recording_files = meeting.get("recording_files", [])
+
+            # Debug: log all file types for personal account
+            if account["type"] == "personal":
+                logger.info(f"DEBUG - Personal account files for {meeting_topic}:")
+                for file in recording_files:
+                    logger.info(f"  File: {file.get('file_type', 'NO_TYPE')} | {file.get('file_extension', 'NO_EXT')} | {file.get('recording_type', 'NO_REC_TYPE')}")
             
             for file in recording_files:
                 file_type = file.get("file_type", "")
                 recording_type = file.get("recording_type", "")
                 download_url = file.get("download_url", "")
+
+                # Prioritize checking the recording_type first for key assets
+                if recording_type == "summary":
+                    session_data["ai_summary_url"] = download_url
+                elif recording_type == "summary_next_steps":
+                    session_data["ai_next_steps_url"] = download_url
                 
-                # Look for MP4 video files (prefer shared_screen_with_speaker_view variants)
-                if file_type == "MP4":
-                    if "shared_screen_with_speaker_view" in recording_type:
-                        session_data["zoom_video_url"] = download_url
-                    elif recording_type == "shared_screen" and "zoom_video_url" not in session_data:
-                        session_data["zoom_video_url"] = download_url
-                    elif recording_type == "active_speaker" and "zoom_video_url" not in session_data:
-                        session_data["zoom_video_url"] = download_url
-                        
-                # Look for TRANSCRIPT files with VTT extension
-                elif file_type == "TRANSCRIPT" and file.get("file_extension") == "VTT":
+                # Handle transcripts (VTT files), which can have different file_types
+                elif (file_type == "TRANSCRIPT" or file_type == "CC") and file.get("file_extension") == "VTT":
                     session_data["transcript_url"] = download_url
                     
-                # Look for AI summary files
-                elif file_type == "SUMMARY":
-                    if recording_type == "summary":
-                        session_data["ai_summary_url"] = download_url
-                    elif recording_type == "summary_next_steps":
-                        session_data["ai_next_steps_url"] = download_url
+                # Handle MP4 video files
+                elif file_type == "MP4":
+                    if "shared_screen_with_speaker_view" in recording_type:
+                        session_data["zoom_video_url"] = download_url
+                    elif "zoom_video_url" not in session_data: # Fallback to other MP4 types
+                        session_data["zoom_video_url"] = download_url
             
             return session_data
             
@@ -657,7 +660,9 @@ class SimpleZoomExtractor:
                                 self.drive_service.files().delete(fileId=old_file['id']).execute()
                             logger.info(f"Deleted duplicate file: {file_name} (ID: {old_file['id']})")
                         except Exception as e:
-                            logger.warning(f"Failed to delete duplicate file {old_file['id']}: {e}")
+                            # Only log if it's not a 404 (file already deleted)
+                            if "404" not in str(e) and "notFound" not in str(e):
+                                logger.warning(f"Failed to delete duplicate file {old_file['id']}: {e}")
                     
                     unique_files[file_name] = most_recent
                 else:
