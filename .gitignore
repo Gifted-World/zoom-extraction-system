@@ -6,9 +6,12 @@
 .env.production.local
 
 # Google credentials
-*.json
 credentials.json
 service-account.json
+
+# Keep important JSON files
+!processed_meetings.json
+!processed_admin_meetings.json
 
 # Python
 __pycache__/
@@ -149,13 +152,17 @@ Temporary Items
 .apdisk
 
 # Logs
-logs/
+logs/*.log
 *.log
 
 # Temporary files
 temp/
 tmp/
 *.tmp
+
+# Test result files
+*_test_results_*.json
+test_*_*.log
 
 # Zoom session sheet ID
 zoom_sessions_sheet_id.txt
@@ -164,3 +171,6 @@ zoom_sessions_sheet_id.txt
 *.bak
 *.backup
 *~
+
+# IDE specific files
+.kiro/
