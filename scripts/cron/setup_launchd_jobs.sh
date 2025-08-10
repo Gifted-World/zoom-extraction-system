@@ -4,8 +4,6 @@
 # This is a more reliable way to schedule jobs on macOS than cron
 
 PROJECT_DIR="/Users/rajeshpanchanathan/Documents/genwise/projects/zoom-extraction-system"
-CONDA_BASE="/Users/rajeshpanchanathan/miniforge3"
-ENV_FILE="$PROJECT_DIR/.env"
 LOG_DIR="$PROJECT_DIR/logs"
 
 # Create logs directory if it doesn't exist
@@ -27,9 +25,7 @@ cat > "$PERSONAL_PLIST" << EOF
     <string>com.genwise.personal.zoom.extraction</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/bin/bash</string>
-        <string>-c</string>
-        <string>/bin/bash -c \"cd $PROJECT_DIR && source $ENV_FILE && source $CONDA_BASE/etc/profile.d/conda.sh && conda activate base && python $PROJECT_DIR/scripts/extract_personal_videos.py --start-date \\$(date -v-1d +%Y-%m-%d) --end-date \\$(date +%Y-%m-%d) > $LOG_DIR/personal_daily_download_\\$(date +%Y%m%d).log 2>&1\"</string>
+        <string>$PROJECT_DIR/scripts/cron/run_personal_daily.sh</string>
     </array>
     <key>StartCalendarInterval</key>
     <dict>
@@ -57,9 +53,7 @@ cat > "$ADMIN_PLIST" << EOF
     <string>com.genwise.admin.zoom.extraction</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/bin/bash</string>
-        <string>-c</string>
-        <string>/bin/bash -c \"cd $PROJECT_DIR && source $ENV_FILE && source $CONDA_BASE/etc/profile.d/conda.sh && conda activate base && python $PROJECT_DIR/scripts/extract_admin_videos.py --start-date \\$(date -v-1d +%Y-%m-%d) --end-date \\$(date +%Y-%m-%d) > $LOG_DIR/admin_daily_download_\\$(date +%Y%m%d).log 2>&1\"</string>
+        <string>$PROJECT_DIR/scripts/cron/run_admin_daily.sh</string>
     </array>
     <key>StartCalendarInterval</key>
     <dict>
