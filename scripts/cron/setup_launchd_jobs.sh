@@ -1,22 +1,18 @@
 #!/bin/bash
 
-# Setup Launch Agent for personal and admin account downloads
-# This is a more reliable way to schedule jobs on macOS than cron
+# Setup script for macOS LaunchAgents to run daily Zoom extraction
+# This script creates and loads LaunchAgent .plist files for both personal and admin accounts
 
 PROJECT_DIR="/Users/rajeshpanchanathan/Documents/genwise/projects/zoom-extraction-system"
 LOG_DIR="$PROJECT_DIR/logs"
 
-# Create logs directory if it doesn't exist
+echo "Setting up LaunchAgents for daily Zoom extraction..."
+
+# Ensure log directory exists
 mkdir -p "$LOG_DIR"
-chmod 755 "$LOG_DIR"
 
-# Create launch agents directory if it doesn't exist
-LAUNCH_AGENTS_DIR="$HOME/Library/LaunchAgents"
-mkdir -p "$LAUNCH_AGENTS_DIR"
-
-# Personal account extraction launch agent
-PERSONAL_PLIST="$LAUNCH_AGENTS_DIR/com.genwise.personal.zoom.extraction.plist"
-cat > "$PERSONAL_PLIST" << EOF
+# Create Personal Account LaunchAgent
+cat > ~/Library/LaunchAgents/com.genwise.personal.zoom.extraction.plist << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -38,13 +34,14 @@ cat > "$PERSONAL_PLIST" << EOF
     <string>$LOG_DIR/personal_launchd.log</string>
     <key>StandardErrorPath</key>
     <string>$LOG_DIR/personal_launchd_error.log</string>
+    <key>RunAtLoad</key>
+    <false/>
 </dict>
 </plist>
 EOF
 
-# Admin account extraction launch agent
-ADMIN_PLIST="$LAUNCH_AGENTS_DIR/com.genwise.admin.zoom.extraction.plist"
-cat > "$ADMIN_PLIST" << EOF
+# Create Admin Account LaunchAgent
+cat > ~/Library/LaunchAgents/com.genwise.admin.zoom.extraction.plist << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -66,21 +63,29 @@ cat > "$ADMIN_PLIST" << EOF
     <string>$LOG_DIR/admin_launchd.log</string>
     <key>StandardErrorPath</key>
     <string>$LOG_DIR/admin_launchd_error.log</string>
+    <key>RunAtLoad</key>
+    <false/>
 </dict>
 </plist>
 EOF
 
-# Load the launch agents
-launchctl load "$PERSONAL_PLIST"
-launchctl load "$ADMIN_PLIST"
+# Load the LaunchAgents
+echo "Loading personal extraction LaunchAgent..."
+launchctl load ~/Library/LaunchAgents/com.genwise.personal.zoom.extraction.plist
 
-echo "Launch agents installed successfully."
-echo "Personal extraction will run at 1:00 AM daily."
-echo "Admin extraction will run at 3:00 AM daily."
+echo "Loading admin extraction LaunchAgent..."
+launchctl load ~/Library/LaunchAgents/com.genwise.admin.zoom.extraction.plist
+
+# Verify they're loaded
+echo "Verifying LaunchAgents are loaded..."
+launchctl list | grep genwise
+
 echo ""
-echo "To check their status, run:"
-echo "launchctl list | grep genwise"
+echo "✅ Setup complete!"
+echo "📅 Personal extraction will run daily at 1:00 AM IST"
+echo "📅 Admin extraction will run daily at 3:00 AM IST"
+echo "📝 Logs will be written to: $LOG_DIR/"
 echo ""
-echo "To run them immediately for testing:"
-echo "launchctl start com.genwise.personal.zoom.extraction"
-echo "launchctl start com.genwise.admin.zoom.extraction"
+echo "To check status: launchctl list | grep genwise"
+echo "To manually test: ./scripts/cron/run_personal_daily.sh"
+echo "To manually test: ./scripts/cron/run_admin_daily.sh"
